@@ -1,0 +1,63 @@
+</details>
+
+---
+
+### ✅ 4. `config/tool_manifest.yaml`
+
+<details>
+<summary>Click to expand</summary>
+
+```yaml
+# Tool Manifest
+defaults:
+  no_network: true
+  working_dirs:
+    project: "/project"
+    artifacts: "/artifacts"
+  sandbox:
+    phase: 1
+  limits:
+    compute_budget_s:
+      free: 10
+      premium: 30
+    sandbox_timeout_s:
+      free: 60
+      premium: 180
+
+tools:
+  - name: lint_ast
+    description: Block unsafe imports
+    allowed_tiers: [free, premium]
+    inputs:
+      paths: [string]
+    safety:
+      - "Fail if imports in denylist"
+
+  - name: run_manim
+    description: Render scene in sandbox
+    allowed_tiers: [free, premium]
+    inputs:
+      entry_point: string
+      scene: string
+      fps: integer
+      preset: string
+    constraints:
+      duration_limit_by_tier:
+        free: 8.0
+        premium: 30.0
+    timeout_s:
+      by_tier:
+        free: 60
+        premium: 180
+
+  - name: ffprobe_meta
+    description: Validate video metadata
+    allowed_tiers: [free, premium]
+
+  - name: generate_thumbnail
+    description: Extract frame for preview
+    allowed_tiers: [free, premium]
+
+  - name: apply_watermark
+    description: Overlay watermark if required
+    allowed_tiers: [free, premium]
