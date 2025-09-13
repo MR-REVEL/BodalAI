@@ -1,0 +1,72 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+env/
+
+# Packaging / build
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+wheels/
+
+# Logs & misc
+*.log
+*.tmp
+*.swp
+*.swo
+
+# IDE / Editor
+.vscode/
+.idea/
+*.code-workspace
+
+# Byte-compiled / cache
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ---- Manim specific ----
+# Default output directory (change if you configured differently)
+media/
+# Generated partial movie files
+**/partial_movie_files/
+# Generated tex directory
+**/Tex/
+# Manim cache (if using temp caching)
+**/.manim_cache/
+
+# ---- Images / Renders (optional) ----
+# Uncomment if you do not want to version exported static frames
+# **/images/
+
+# ---- Python tooling ----
+.poetry/
+Pipfile.lock
+poetry.lock
+
+# ---- Coverage / testing ----
+coverage.xml
+
+# ---- Local overrides ----
+*.local
+*.secret
