@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/trp.schema.json",
+  "title": "Task Request Plan (TRP) Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "trp_id",
+    "project_id",
+    "user_tier",
+    "goal",
+    "constraints",
+    "plan",
+    "acceptance_tests"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "trp_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "user_tier": { "type": "string", "enum": ["free", "premium"] },
+    "goal": { "type": "string", "minLength": 1 },
+
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_files": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "assets": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "entry_point": { "type": "string", "minLength": 1 },
+        "scene_name": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "duration_s",
+        "fps",
+        "resolution",
+        "compute_budget_s",
+        "sandbox_phase",
+        "watermark_required",
+        "no_network",
+        "timeout_sandbox_s"
+      ],
+      "properties": {
+        "duration_s": { "type": "number", "exclusiveMinimum": 0 },
+        "fps": { "type": "integer", "const": 24 },
+        "resolution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {
+            "width": { "type": "integer", "minimum": 1 },
+            "height": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "compute_budget_s": { "type": "integer", "minimum": 1 },
+        "sandbox_phase": { "type": "integer", "enum": [1, 2] },
+        "watermark_required": { "type": "boolean" },
+        "no_network": { "type": "boolean", "const": true },
+        "timeout_sandbox_s": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["steps"],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tool", "params", "why"],
+            "properties": {
+              "tool": { "type": "string", "minLength": 1 },
+              "params": { "type": "object" },
+              "why": { "type": "string", "minLength": 1 },
+              "if_fails": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "acceptance_tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "check", "expected"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "check": { "type": "string", "minLength": 1 },
+          "expected": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "video": {
+          "type": "string",
+          "pattern": "^/artifacts/.+"
+        },
+        "thumbnail": {
+          "type": "string",
+          "pattern": "^/artifacts/.+"
+        },
+        "logs": {
+          "type": "string",
+          "pattern": "^/artifacts/.+"
+        }
+      }
+    },
+
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "carry_forward": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "if": { "properties": { "user_tier": { "const": "free" } }, "required": ["user_tier"] },
+      "then": {
+        "properties": {
+          "constraints": {
+            "properties": {
+              "duration_s": { "type": "number", "maximum": 8.0 },
+              "compute_budget_s": { "type": "integer", "maximum": 10 },
+              "timeout_sandbox_s": { "type": "integer", "maximum": 60 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "user_tier": { "const": "premium" } }, "required": ["user_tier"] },
+      "then": {
+        "properties": {
+          "constraints": {
+            "properties": {
+              "duration_s": { "type": "number", "maximum": 30.0 },
+              "compute_budget_s": { "type": "integer", "maximum": 30 },
+              "timeout_sandbox_s": { "type": "integer", "maximum": 180 }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

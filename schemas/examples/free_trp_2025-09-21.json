@@ -1,0 +1,44 @@
+{
+  "$schema": "../../schemas/trp.schema.json",
+  "trp_id": "trp_2025-09-21_free_001",
+  "project_id": "proj_demo",
+  "user_tier": "free",
+  "goal": "Render an 8s 480p@24fps preview of the Intro scene",
+  "inputs": {
+    "source_files": ["scene.py"],
+    "assets": [],
+    "entry_point": "scene.py",
+    "scene_name": "Intro"
+  },
+  "constraints": {
+    "duration_s": 8.0,
+    "fps": 24,
+    "resolution": { "width": 854, "height": 480 },
+    "compute_budget_s": 10,
+    "sandbox_phase": 1,
+    "watermark_required": false,
+    "no_network": true,
+    "timeout_sandbox_s": 60
+  },
+  "plan": {
+    "steps": [
+      { "tool": "lint_ast", "params": { "paths": ["scene.py"] }, "why": "Block unsafe imports" },
+      { "tool": "run_manim", "params": { "entry_point": "scene.py", "scene": "Intro", "fps": 24, "preset": "480p" }, "why": "Render preview" },
+      { "tool": "ffprobe_meta", "params": { "video": "/artifacts/out.mp4" }, "why": "Validate duration/fps" },
+      { "tool": "generate_thumbnail", "params": { "video": "/artifacts/out.mp4", "time_s": 0.5 }, "why": "Create thumbnail" }
+    ]
+  },
+  "acceptance_tests": [
+    { "id": "AT-DUR", "check": "duration <= 8.25", "expected": "pass" },
+    { "id": "AT-FPS", "check": "fps == 24", "expected": "pass" }
+  ],
+  "artifacts": {
+    "video": "/artifacts/out.mp4",
+    "thumbnail": "/artifacts/out.jpg",
+    "logs": "/artifacts/run.log"
+  },
+  "memory": {
+    "carry_forward": true,
+    "notes": "User approved 8s preview preset."
+  }
+}

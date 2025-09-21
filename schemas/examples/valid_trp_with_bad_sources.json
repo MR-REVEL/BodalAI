@@ -1,0 +1,23 @@
+{
+  "trp_id": "trp-003",
+  "project_id": "proj-123",
+  "user_tier": "free",
+  "goal": "Run bad example to trigger linter",
+  "inputs": {
+    "source_files": [
+      "c:/Users/jparente/Desktop/Code/Manim Project/runtime/examples/bad_scene_subprocess.py"
+    ]
+  },
+  "constraints": {
+    "duration_s": 5,
+    "fps": 24,
+    "resolution": { "width": 1280, "height": 720 },
+    "compute_budget_s": 5,
+    "sandbox_phase": 1,
+    "watermark_required": true,
+    "no_network": true,
+    "timeout_sandbox_s": 30
+  },
+  "plan": { "steps": [ { "tool": "noop", "params": {}, "why": "demo" } ] },
+  "acceptance_tests": [ { "id": "t1", "check": "dummy", "expected": "ok" } ]
+}

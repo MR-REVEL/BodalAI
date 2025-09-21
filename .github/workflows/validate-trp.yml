@@ -1,0 +1,82 @@
+name: Validate TRPs and Lint Source
+
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema
+
+      - name: Validate TRPs against schema
+        run: |
+          python - <<'PY'
+          import json, glob, sys
+          from jsonschema import Draft202012Validator
+          schema = json.load(open("schemas/trp.schema.json"))
+          validator = Draft202012Validator(schema)
+
+          failures = 0
+          files = glob.glob("examples/trp/*.json") + glob.glob("plans/*.json")
+          if not files:
+            print("No TRP files found in examples/trp or plans/. Skipping.")
+            sys.exit(0)
+
+          for f in files:
+            try:
+              data = json.load(open(f))
+              errors = sorted(validator.iter_errors(data), key=lambda e: e.path)
+              if errors:
+                print(f"❌ {f} failed schema validation:")
+                for e in errors:
+                  path = ".".join(map(str, e.path))
+                  print(f"   - {path}: {e.message}")
+                failures += 1
+              else:
+                print(f"✅ {f} OK")
+            except Exception as ex:
+              print(f"❌ {f} could not be validated: {ex}")
+              failures += 1
+
+          if failures:
+            print(f"{failures} TRP file(s) failed schema validation.")
+            sys.exit(1)
+          PY
+
+      - name: Run AST linter for source files referenced by TRPs (if present)
+        run: |
+          python - <<'PY'
+          import json, glob, os, subprocess, sys
+          trps = glob.glob("examples/trp/*.json") + glob.glob("plans/*.json")
+          files_to_lint = set()
+          for f in trps:
+            try:
+              data = json.load(open(f))
+              inputs = data.get("inputs", {})
+              for p in inputs.get("source_files", []):
+                if os.path.exists(p):
+                  files_to_lint.add(p)
+            except Exception:
+              pass
+          if not files_to_lint:
+            print("No source files found on disk from TRPs. Skipping linter.")
+            sys.exit(0)
+          cmd = [sys.executable, "runtime/ast_linter.py", "--paths", *sorted(files_to_lint)]
+          print("Running:", " ".join(cmd))
+          res = subprocess.run(cmd, text=True)
+          sys.exit(res.returncode)
+          PY

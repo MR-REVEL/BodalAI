@@ -1,0 +1,44 @@
+{
+  "$schema": "../../schemas/trp.schema.json",
+  "trp_id": "trp_2025-09-21_trial_001",
+  "project_id": "proj_demo",
+  "user_tier": "premium",
+  "goal": "One-off 30s trial for a Free user with watermark",
+  "inputs": {
+    "source_files": ["trial_scene.py"],
+    "assets": [],
+    "entry_point": "trial_scene.py",
+    "scene_name": "TrialScene"
+  },
+  "constraints": {
+    "duration_s": 30.0,
+    "fps": 24,
+    "resolution": { "width": 1920, "height": 1080 },
+    "compute_budget_s": 30,
+    "sandbox_phase": 2,
+    "watermark_required": true,
+    "no_network": true,
+    "timeout_sandbox_s": 180
+  },
+  "plan": {
+    "steps": [
+      { "tool": "lint_ast", "params": { "paths": ["trial_scene.py"] }, "why": "Block unsafe imports" },
+      { "tool": "run_manim", "params": { "entry_point": "trial_scene.py", "scene": "TrialScene", "fps": 24, "preset": "1080p" }, "why": "Render trial" },
+      { "tool": "apply_watermark", "params": { "video_in": "/artifacts/out.mp4", "logo_path": "/project/watermark_logo.png", "opacity": 0.9, "size_pct": 10, "margins_pct": 4, "video_out": "/artifacts/out_watermarked.mp4" }, "why": "Enforce watermark for trial" },
+      { "tool": "ffprobe_meta", "params": { "video": "/artifacts/out_watermarked.mp4" }, "why": "Validate final duration/fps" }
+    ]
+  },
+  "acceptance_tests": [
+    { "id": "AT-WM", "check": "watermark overlay present", "expected": "pass" },
+    { "id": "AT-DUR", "check": "29.75 <= duration <= 30.25", "expected": "pass" }
+  ],
+  "artifacts": {
+    "video": "/artifacts/out_watermarked.mp4",
+    "thumbnail": "/artifacts/out.jpg",
+    "logs": "/artifacts/run.log"
+  },
+  "memory": {
+    "carry_forward": true,
+    "notes": "FREE_TRIAL=true; user-tied quota enforced by session; editing rules remain Free."
+  }
+}

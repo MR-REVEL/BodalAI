@@ -1,0 +1,44 @@
+{
+  "$schema": "../../schemas/trp.schema.json",
+  "trp_id": "trp_2025-09-21_premium_001",
+  "project_id": "proj_demo",
+  "user_tier": "premium",
+  "goal": "Render a 30s 1080p@24fps animation for the Title scene",
+  "inputs": {
+    "source_files": ["title_scene.py"],
+    "assets": [],
+    "entry_point": "title_scene.py",
+    "scene_name": "Title"
+  },
+  "constraints": {
+    "duration_s": 30.0,
+    "fps": 24,
+    "resolution": { "width": 1920, "height": 1080 },
+    "compute_budget_s": 30,
+    "sandbox_phase": 2,
+    "watermark_required": false,
+    "no_network": true,
+    "timeout_sandbox_s": 180
+  },
+  "plan": {
+    "steps": [
+      { "tool": "lint_ast", "params": { "paths": ["title_scene.py"] }, "why": "Block unsafe imports" },
+      { "tool": "run_manim", "params": { "entry_point": "title_scene.py", "scene": "Title", "fps": 24, "preset": "1080p" }, "why": "Render final" },
+      { "tool": "ffprobe_meta", "params": { "video": "/artifacts/out.mp4" }, "why": "Validate duration/fps/resolution" },
+      { "tool": "generate_thumbnail", "params": { "video": "/artifacts/out.mp4", "time_s": 1.0 }, "why": "Create thumbnail" }
+    ]
+  },
+  "acceptance_tests": [
+    { "id": "AT-DUR", "check": "29.75 <= duration <= 30.25", "expected": "pass" },
+    { "id": "AT-RES", "check": "resolution == 1920x1080", "expected": "pass" }
+  ],
+  "artifacts": {
+    "video": "/artifacts/out.mp4",
+    "thumbnail": "/artifacts/out.jpg",
+    "logs": "/artifacts/run.log"
+  },
+  "memory": {
+    "carry_forward": true,
+    "notes": "Premium: user prefers bold title animation."
+  }
+}

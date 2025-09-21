@@ -1,0 +1,28 @@
+{
+  "trp_id": "trp-001",
+  "project_id": "proj-123",
+  "user_tier": "free",
+  "goal": "Render a short Manim scene",
+  "constraints": {
+    "duration_s": 5,
+    "fps": 24,
+    "resolution": { "width": 1280, "height": 720 },
+    "compute_budget_s": 5,
+    "sandbox_phase": 1,
+    "watermark_required": true,
+    "no_network": true,
+    "timeout_sandbox_s": 30
+  },
+  "plan": {
+    "steps": [
+      {
+        "tool": "manim_render",
+        "params": { "entry_point": "main.py", "scene_name": "MyScene" },
+        "why": "Render the target scene with specified parameters"
+      }
+    ]
+  },
+  "acceptance_tests": [
+    { "id": "t1", "check": "video_exists", "expected": "true" }
+  ]
+}
