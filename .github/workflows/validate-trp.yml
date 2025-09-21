@@ -27,13 +27,17 @@ jobs:
           python - <<'PY'
           import json, glob, sys
           from jsonschema import Draft202012Validator
+
           schema = json.load(open("schemas/trp.schema.json"))
           validator = Draft202012Validator(schema)
 
           failures = 0
           files = glob.glob("examples/trp/*.json") + glob.glob("plans/*.json")
+          # Exclude intentionally invalid examples
+          files = [f for f in files if "invalid" not in f.lower()]
+
           if not files:
-            print("No TRP files found in examples/trp or plans/. Skipping.")
+            print("No TRP files found (valid set). Skipping.")
             sys.exit(0)
 
           for f in files:
