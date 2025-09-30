@@ -12,8 +12,9 @@ This folder contains example Task Request Plan (TRP) JSON files demonstrating va
 - free_trp_2025-09-21.json — Valid, free-tier 8s preview at 480p. Expected: PASS.
 - premium_trp_2025-09-21.json — Valid, premium 30s at 1080p. Expected: PASS.
 - trp_free_trial_30s_valid.json — Valid, one-off trial using premium constraints with watermark_required=true. Expected: PASS (UI must enforce trial eligibility).
-- trp_free_over_duration_invalid.json — Invalid, free-tier exceeds 8s and empty steps. Expected: FAIL.
-- trp_wrong_fps_invalid.json — Invalid, fps must be 24 and steps must be non-empty. Expected: FAIL.
+- Invalid scenarios moved to `examples/trp_invalid/`:
+  - trp_free_over_duration_invalid.json — free-tier exceeds 8s and empty steps. Expected: FAIL.
+  - trp_wrong_fps_invalid.json — fps must be 24 and steps must be non-empty. Expected: FAIL.
 
 ## Notes
 

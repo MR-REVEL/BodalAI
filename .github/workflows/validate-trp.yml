@@ -33,8 +33,6 @@ jobs:
 
           failures = 0
           files = glob.glob("examples/trp/*.json") + glob.glob("plans/*.json")
-          # Exclude intentionally invalid examples
-          files = [f for f in files if "invalid" not in f.lower()]
 
           if not files:
             print("No TRP files found (valid set). Skipping.")
@@ -58,6 +56,37 @@ jobs:
 
           if failures:
             print(f"{failures} TRP file(s) failed schema validation.")
+            sys.exit(1)
+          PY
+
+      - name: Validate intentionally invalid TRPs (should fail schema)
+        run: |
+          python - <<'PY'
+          import json, glob, sys
+          from jsonschema import Draft202012Validator
+          schema = json.load(open("schemas/trp.schema.json"))
+          validator = Draft202012Validator(schema)
+
+          files = glob.glob("examples/trp_invalid/*.json")
+          if not files:
+            print("No intentionally invalid TRPs found. Skipping.")
+            sys.exit(0)
+
+          failures = 0
+          for f in files:
+            try:
+              data = json.load(open(f))
+              errors = list(validator.iter_errors(data))
+              if errors:
+                print(f"✅ {f} correctly failed validation with {len(errors)} error(s)")
+              else:
+                print(f"❌ {f} unexpectedly passed schema validation")
+                failures += 1
+            except Exception as ex:
+              print(f"✅ {f} raised exception as expected: {ex}")
+
+          if failures:
+            print(f"{failures} invalid TRP file(s) unexpectedly passed.")
             sys.exit(1)
           PY
 

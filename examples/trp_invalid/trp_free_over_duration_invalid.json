@@ -1,0 +1,19 @@
+{
+  "$schema": "../../schemas/trp.schema.json",
+  "trp_id": "trp_2025-09-21_free_bad_001",
+  "project_id": "proj_demo",
+  "user_tier": "free",
+  "goal": "Try to render 12s on free",
+  "constraints": {
+    "duration_s": 12.0,
+    "fps": 24,
+    "resolution": { "width": 854, "height": 480 },
+    "compute_budget_s": 10,
+    "sandbox_phase": 1,
+    "watermark_required": false,
+    "no_network": true,
+    "timeout_sandbox_s": 60
+  },
+  "plan": { "steps": [] },
+  "acceptance_tests": []
+}
