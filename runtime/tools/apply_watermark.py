@@ -31,12 +31,12 @@ def ensure_under(path: Path, roots):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--video-in", required=True, help="Input MP4 under /artifacts")
-    ap.add_argument("--logo", required=True, help="Logo image under /project (png recommended)")
-    ap.add_argument("--video-out", required=True, help="Output MP4 under /artifacts")
+    ap.add_argument("--video-in", "--video_in", dest="video_in", required=True, help="Input MP4 under /artifacts")
+    ap.add_argument("--logo", "--logo-path", dest="logo", required=True, help="Logo image under /project (png recommended)")
+    ap.add_argument("--video-out", "--video_out", dest="video_out", required=True, help="Output MP4 under /artifacts")
     ap.add_argument("--opacity", type=float, default=0.85, help="0..1 alpha for logo")
-    ap.add_argument("--size-pct", type=float, default=10.0, help="Logo width as % of video width")
-    ap.add_argument("--margins-pct", type=float, default=4.0, help="Margins from edges as % of video dims")
+    ap.add_argument("--size-pct", "--size_pct", dest="size_pct", type=float, default=10.0, help="Logo width as % of video width")
+    ap.add_argument("--margins-pct", "--margins_pct", dest="margins_pct", type=float, default=4.0, help="Margins from edges as % of video dims")
     ap.add_argument("--position", choices=sorted(ALLOWED_POS), default="br", help="Logo corner: br/bl/tr/tl")
     ap.add_argument("--crf", type=int, default=20, help="x264 quality (lower=better)")
     ap.add_argument("--preset", default="veryfast", help="x264 speed/quality tradeoff")
