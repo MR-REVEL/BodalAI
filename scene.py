@@ -1,5 +1,6 @@
-def hello() -> str:
-    return "hello"
+from manim import *
 
-if __name__ == "__main__":
-    print(hello())
+class Intro(Scene):
+    def construct(self):
+        t = Text("Hello, Manim!").scale(0.9)
+        self.play(Write(t), run_time=2)

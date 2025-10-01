@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schemas/trp.schema.json",
+  "trp_id": "trp_smoketest_2s_24fps",
+  "project_id": "proj_demo",
+  "user_tier": "free",
+  "goal": "Validate postflight with 2s @ 24fps",
+  "inputs": {
+    "source_files": ["scene.py"],
+    "assets": [],
+    "entry_point": "scene.py",
+    "scene_name": "TitleScene"
+  },
+  "constraints": {
+    "duration_s": 2.0,
+    "fps": 24,
+    "resolution": { "width": 854, "height": 480 },
+    "compute_budget_s": 5,
+    "sandbox_phase": 1,
+    "watermark_required": false,
+    "no_network": true,
+    "timeout_sandbox_s": 60
+  },
+  "plan": { "steps": [ { "tool": "noop", "params": {}, "why": "placeholder" } ] },
+  "acceptance_tests": [],
+  "artifacts": { "video": "/artifacts/out.mp4" }
+}
