@@ -61,3 +61,11 @@ tools:
   - name: apply_watermark
     description: Overlay watermark if required
     allowed_tiers: [free, premium]
+    inputs:
+      video_in: string
+      video_out: string?
+      logo: string?       # defaults to /project/config/watermark.png
+      opacity: number?    # defaults to 0.9
+      size_pct: number?   # defaults to 10 (% width)
+      margins_pct: number? # defaults to 4 (% width/height)
+      position: string?   # br|bl|tr|tl (defaults br)

@@ -4,14 +4,16 @@ apply_watermark.py
 Overlay a logo onto a video with percent-based size and margins.
 
 Usage:
-  python runtime/tools/apply_watermark.py ^
-    --video-in /artifacts/out.mp4 ^
-    --logo /project/watermark_logo.png ^
-    --opacity 0.85 ^
-    --size-pct 10 ^
-    --margins-pct 4 ^
-    --position br ^
-    --video-out /artifacts/out_watermarked.mp4
+    python runtime/tools/apply_watermark.py ^
+        --video-in /artifacts/out.mp4 ^
+        --video-out /artifacts/out_watermarked.mp4
+
+Defaults:
+    logo: /project/config/watermark.png
+    opacity: 0.9
+    size_pct: 10 (percent of video width)
+    margins_pct: 4 (percent of width/height)
+    position: br (bottom-right)
 """
 import argparse
 import subprocess
@@ -32,9 +34,20 @@ def ensure_under(path: Path, roots):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--video-in", "--video_in", dest="video_in", required=True, help="Input MP4 under /artifacts")
-    ap.add_argument("--logo", "--logo-path", dest="logo", required=True, help="Logo image under /project (png recommended)")
-    ap.add_argument("--video-out", "--video_out", dest="video_out", required=True, help="Output MP4 under /artifacts")
-    ap.add_argument("--opacity", type=float, default=0.85, help="0..1 alpha for logo")
+    ap.add_argument(
+        "--logo",
+        "--logo-path",
+        dest="logo",
+        default="/project/config/watermark.png",
+        help="Logo image under /project (png recommended)",
+    )
+    ap.add_argument(
+        "--video-out",
+        "--video_out",
+        dest="video_out",
+        help="Output MP4 under /artifacts (defaults to append _watermarked.mp4)",
+    )
+    ap.add_argument("--opacity", type=float, default=0.9, help="0..1 alpha for logo")
     ap.add_argument("--size-pct", "--size_pct", dest="size_pct", type=float, default=10.0, help="Logo width as % of video width")
     ap.add_argument("--margins-pct", "--margins_pct", dest="margins_pct", type=float, default=4.0, help="Margins from edges as % of video dims")
     ap.add_argument("--position", choices=sorted(ALLOWED_POS), default="br", help="Logo corner: br/bl/tr/tl")
@@ -44,7 +57,11 @@ def main():
 
     vin = Path(args.video_in)
     logo = Path(args.logo)
-    vout = Path(args.video_out)
+    if args.video_out:
+        vout = Path(args.video_out)
+    else:
+        stem = vin.stem + "_watermarked"
+        vout = vin.with_name(stem + vin.suffix)
 
     if not vin.exists():
         print(f"Input video not found: {vin}", file=sys.stderr); sys.exit(2)
