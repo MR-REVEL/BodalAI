@@ -20,7 +20,13 @@
     "no_network": true,
     "timeout_sandbox_s": 60
   },
-  "plan": { "steps": [ { "tool": "noop", "params": {}, "why": "placeholder" } ] },
+  "plan": {
+    "steps": [
+      { "tool": "lint_ast", "params": { "paths": ["scene.py"] }, "why": "Safety lint" },
+      { "tool": "run_manim", "params": { "entry_point": "scene.py", "scene": "Intro", "fps": 24 }, "why": "Render scene" },
+      { "tool": "ffprobe_meta", "params": { "video": "/artifacts/out.mp4" }, "why": "Capture metadata" }
+    ]
+  },
   "acceptance_tests": [],
   "artifacts": { "video": "/artifacts/out.mp4" }
 }
