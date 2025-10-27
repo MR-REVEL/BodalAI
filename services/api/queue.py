@@ -6,6 +6,7 @@ import queue
 import threading
 from typing import Optional
 
+from .config import CONFIG
 from .models import Job
 
 logger = logging.getLogger(__name__)
@@ -22,14 +23,19 @@ def enqueue_job(job: Job) -> None:
 
 
 def start_worker(executor_func):
-    """Start the background worker thread."""
+    """
+    Start the background worker thread.
+    
+    Note: Phase-1 uses CONFIG.CONCURRENCY=1 (single worker).
+    Future phases may spawn multiple workers based on this value.
+    """
     global _worker_thread
     if _worker_thread and _worker_thread.is_alive():
         logger.warning("Worker already running")
         return
 
     def worker():
-        logger.info("Worker thread started")
+        logger.info(f"Worker thread started (concurrency={CONFIG.CONCURRENCY})")
         while True:
             job = _job_queue.get()
             try:

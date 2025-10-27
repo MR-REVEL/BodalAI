@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 
-from .config import ARTIFACTS_DIR, ORCHESTRATOR
+from .config import CONFIG
 from .models import Job, JobStatus
 from .storage import save_job
 
@@ -19,44 +19,76 @@ def execute_job(job: Job) -> None:
     """
     Execute a TRP job using the orchestrator.
     Updates job status and saves results to disk.
+    
+    Uses CONFIG for:
+    - ARTIFACTS_ROOT: base path for job artifacts
+    - ORCHESTRATOR: path to orchestrator.py
+    - SCHEMA_PATH: TRP schema for validation
+    - LOGO_DEFAULT: watermark logo (future use)
     """
-    logger.info(f"Starting execution for job {job.job_id}")
-    job.status = JobStatus.RUNNING
-    job.started_at = time.time()
+    logger.info(f"Starting execution for job {job.id}")
+    job.set_status(JobStatus.RUNNING)  # Auto-sets started_ts
     save_job(job)
 
-    # Write TRP to temp file
-    job_artifacts = ARTIFACTS_DIR / job.job_id
+    # Create job-specific artifact directory
+    job_artifacts = CONFIG.ARTIFACTS_ROOT / job.id
     job_artifacts.mkdir(parents=True, exist_ok=True)
+    
+    # Write TRP to job artifacts directory
     trp_file = job_artifacts / "trp_request.json"
     trp_file.write_text(json.dumps(job.trp, indent=2), encoding="utf-8")
+    
+    # Write run log to job artifacts
+    run_log = job_artifacts / "run.log"
 
-    # Call orchestrator
-    cmd = [sys.executable, str(ORCHESTRATOR), "--trp", str(trp_file), "--validate-schema"]
+    # Call orchestrator with schema validation
+    cmd = [
+        sys.executable,
+        str(CONFIG.ORCHESTRATOR),
+        "--trp", str(trp_file),
+        "--validate-schema"
+    ]
+    
+    logger.info(f"Executing: {' '.join(cmd)}")
     proc = subprocess.run(cmd, capture_output=True, text=True)
-
-    job.completed_at = time.time()
+    
+    # Save run log
+    run_log.write_text(
+        f"COMMAND: {' '.join(cmd)}\n\n"
+        f"STDOUT:\n{proc.stdout}\n\n"
+        f"STDERR:\n{proc.stderr}\n\n"
+        f"RETURNCODE: {proc.returncode}\n",
+        encoding="utf-8"
+    )
 
     if proc.returncode != 0:
-        job.status = JobStatus.FAILED
-        job.error = proc.stdout or proc.stderr
-        logger.error(f"Job {job.job_id} failed: {job.error}")
+        # set_error automatically sets status to FAILED and finished_ts
+        error_msg = proc.stdout or proc.stderr
+        job.set_error(error_msg)
+        logger.error(f"Job {job.id} failed: {error_msg}")
     else:
-        job.status = JobStatus.COMPLETED
         try:
-            job.result = json.loads(proc.stdout.strip())
-            # Collect artifact paths
-            if "final_video" in job.result:
-                job.artifacts["video"] = job.result["final_video"]
-            if "meta" in job.result:
-                job.artifacts["meta"] = job.result["meta"]
-            if "thumbnail" in job.result:
-                job.artifacts["thumbnail"] = job.result["thumbnail"]
-            if "log" in job.result:
-                job.artifacts["log"] = job.result["log"]
+            result = json.loads(proc.stdout.strip())
+            # Collect artifact paths from orchestrator output
+            artifacts = {}
+            if "final_video" in result:
+                artifacts["video"] = result["final_video"]
+            if "meta" in result:
+                artifacts["meta"] = result["meta"]
+            if "thumbnail" in result:
+                artifacts["thumbnail"] = result["thumbnail"]
+            if "log" in result:
+                artifacts["log"] = result["log"]
+            # Add run log
+            artifacts["run_log"] = str(run_log)
+            
+            job.set_artifacts(artifacts)
+            job.set_status(JobStatus.SUCCEEDED)  # Auto-sets finished_ts
         except Exception as e:
-            logger.warning(f"Could not parse orchestrator output for job {job.job_id}: {e}")
-            job.result = {"raw": proc.stdout}
+            logger.warning(f"Could not parse orchestrator output for job {job.id}: {e}")
+            # Still mark as succeeded but note parsing issue
+            job.set_artifacts({"run_log": str(run_log), "raw_output": proc.stdout})
+            job.set_status(JobStatus.SUCCEEDED)
 
     save_job(job)
-    logger.info(f"Job {job.job_id} finished with status {job.status.value}")
+    logger.info(f"Job {job.id} finished with status {job.status.value}")
