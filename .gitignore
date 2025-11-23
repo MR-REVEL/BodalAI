@@ -70,3 +70,8 @@ coverage.xml
 # ---- Local overrides ----
 *.local
 *.secret
+
+# ---- Runtime Data ----
+data/
+artifacts/
+logs/

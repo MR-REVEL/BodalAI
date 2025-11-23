@@ -19,7 +19,7 @@ _worker_thread: Optional[threading.Thread] = None
 def enqueue_job(job: Job) -> None:
     """Add a job to the execution queue."""
     _job_queue.put(job)
-    logger.info(f"Enqueued job {job.job_id}")
+    logger.info(f"Enqueued job {job.id}")
 
 
 def start_worker(executor_func):
@@ -41,7 +41,7 @@ def start_worker(executor_func):
             try:
                 executor_func(job)
             except Exception as e:
-                logger.exception(f"Worker failed for job {job.job_id}: {e}")
+                logger.exception(f"Worker failed for job {job.id}: {e}")
             finally:
                 _job_queue.task_done()
 
